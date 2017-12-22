@@ -29,5 +29,4 @@
     <j:set var="instance" value="${instance.delegate}"/>
     <j:set var="descriptor" value="${descriptor.publisherDescriptor}"/>
     <st:include page="config.jelly" class="${descriptor.clazz}"/>
-
 </j:jelly>

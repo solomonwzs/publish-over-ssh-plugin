@@ -24,6 +24,7 @@
 
 package jenkins.plugins.publish_over_ssh;
 
+
 import hudson.Util;
 import hudson.util.Secret;
 import jenkins.plugins.publish_over.BPBuildInfo;

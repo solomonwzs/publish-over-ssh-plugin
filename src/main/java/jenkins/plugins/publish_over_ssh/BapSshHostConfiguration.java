@@ -28,6 +28,7 @@ import com.jcraft.jsch.*;
 import hudson.Util;
 import hudson.model.Describable;
 import hudson.model.Hudson;
+import hudson.model.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,8 +47,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 @SuppressWarnings("PMD.TooManyMethods")
-public class BapSshHostConfiguration extends BPHostConfiguration<BapSshClient, BapSshCommonConfiguration> implements Describable<BapSshHostConfiguration> {
-    
+public class BapSshHostConfiguration
+        extends BPHostConfiguration<BapSshClient, BapSshCommonConfiguration>
+        implements Describable<BapSshHostConfiguration> {
+
     static final String LOCALHOST = "127.0.0.1";
     private static final long serialVersionUID = 1L;
     public static final int DEFAULT_PORT = 22;
@@ -72,32 +75,65 @@ public class BapSshHostConfiguration extends BPHostConfiguration<BapSshClient, B
     private String proxyUser;
     private String proxyPassword;
 
+    private ArrayList<String> users;
+
     public BapSshHostConfiguration() {
         // use this constructor instead of the default w/o parameters because there is some
         // business logic in there...
         super(null, null, null, null, null, 0);
         this.keyInfo = new BapSshKeyInfo(null, null, null);
+        this.users = new ArrayList<>();
     }
 
     // CSOFF: ParameterNumberCheck
     @SuppressWarnings("PMD.ExcessiveParameterList") // DBC for you!
     @DataBoundConstructor
-    public BapSshHostConfiguration(final String name, final String hostname, final String username, final String encryptedPassword,
-                                   final String remoteRootDir, final int port, final int timeout, final boolean overrideKey, final String keyPath,
-                                   final String key, final boolean disableExec) {
+    public BapSshHostConfiguration(final String name, final String hostname,
+                                   final String username, final String encryptedPassword,
+                                   final String remoteRootDir, final int port,
+                                   final int timeout, final boolean overrideKey,
+                                   final String keyPath, final String key,
+                                   final boolean disableExec, final String strUsers
+    ) {
         // CSON: ParameterNumberCheck
         super(name, hostname, username, null, remoteRootDir, port);
         this.timeout = timeout;
         this.overrideKey = overrideKey;
         this.keyInfo = new BapSshKeyInfo(encryptedPassword, key, keyPath);
         this.disableExec = disableExec;
+
+        this.users = new ArrayList<>();
+        for (String u : strUsers.split(",")) {
+            this.users.add(u);
+        }
     }
-    
+
+    @DataBoundSetter
+    public void setUsers(String strUsers) {
+        this.users = new ArrayList<>();
+        for (String u : strUsers.split(",")) {
+            this.users.add(u);
+        }
+    }
+
+    public String getStrUsers() {
+        return String.join(",", this.users);
+    }
+
+    public boolean isCurrentUserOK() {
+        User cUser = User.current();
+        if (cUser != null) {
+            return this.users.contains(cUser.getId());
+        } else {
+            return false;
+        }
+    }
+
     @DataBoundSetter
     public void setJumpHost(final String jumpHost) {
         this.jumpHost = jumpHost;
     }
-    
+
     public String getJumpHost() {
         return jumpHost;
     }
@@ -258,14 +294,14 @@ public class BapSshHostConfiguration extends BPHostConfiguration<BapSshClient, B
             throw new BapPublisherException(Messages.exception_failedToCreateClient(e.getLocalizedMessage()), e);
         } catch (BapPublisherException e) {
             bapClient.disconnectQuietly();
-            throw new BapPublisherException(Messages.exception_failedToCreateClient(e.getLocalizedMessage()), e);            
+            throw new BapPublisherException(Messages.exception_failedToCreateClient(e.getLocalizedMessage()), e);
         }
         return bapClient;
     }
 
     /**
      * create a list of hosts from the explicit stated target host and an optional list of jumphosts
-     * 
+     *
      * @return list of hosts
      */
     String[] getHosts() {
@@ -504,5 +540,4 @@ public class BapSshHostConfiguration extends BPHostConfiguration<BapSshClient, B
     public Object readResolve() {
         return super.readResolve();
     }
-
 }

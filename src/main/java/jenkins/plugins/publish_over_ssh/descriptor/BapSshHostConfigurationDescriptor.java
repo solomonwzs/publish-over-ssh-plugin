@@ -27,6 +27,7 @@ package jenkins.plugins.publish_over_ssh.descriptor;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
+import hudson.model.User;
 import hudson.util.FormValidation;
 import jenkins.plugins.publish_over.BPValidators;
 import jenkins.plugins.publish_over_ssh.BapSshHostConfiguration;
@@ -36,11 +37,16 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
+import java.util.*;
+
 @Extension
 public class BapSshHostConfigurationDescriptor extends Descriptor<BapSshHostConfiguration> {
 
+    private Random rand;
+
     public BapSshHostConfigurationDescriptor() {
         super(BapSshHostConfiguration.class);
+        rand = new Random();
     }
 
     @Override
@@ -58,6 +64,19 @@ public class BapSshHostConfigurationDescriptor extends Descriptor<BapSshHostConf
 
     public int getDefaultTimeout() {
         return BapSshHostConfiguration.DEFAULT_TIMEOUT;
+    }
+
+    public ArrayList<String> getUsers() {
+        Collection<User> users = User.getAll();
+        ArrayList<String> l = new ArrayList<>();
+        for (User user : users) {
+            l.add(user.getId());
+        }
+        return l;
+    }
+
+    public int getRandomId() {
+        return this.rand.nextInt(0xffff);
     }
 
     public FormValidation doCheckName(@QueryParameter final String value) {

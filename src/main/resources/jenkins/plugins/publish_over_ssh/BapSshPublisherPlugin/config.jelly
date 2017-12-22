@@ -46,6 +46,7 @@
         <j:scope>
             <j:set var="descriptor" value="${descriptor.publisherDescriptor}"/>
             <f:repeatable items="${instance.publishers}" var="instance" name="publishers" minimum="1" header="${%publisher.dragAndDropLabel}" add="${m.addPublisher()}">
+                <!-- <j:set var="sshHostConf" value="${instance.descriptor.publisherPluginDescriptor.getConfiguration(instance.configName)}"/> -->
                 <table width="100%" padding="0">
                     <st:include page="config.jelly" class="${descriptor.clazz}"/>
                     <f:entry title="">

@@ -24,7 +24,7 @@
   ~ THE SOFTWARE.
   -->
 
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:poj="/pojelly">
+ <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:poj="/pojelly">
 
     <poj:defaultMessages/>
 
@@ -40,6 +40,64 @@
     <f:entry title="${m.remotePath()}" field="remoteRootDir">
         <f:textbox/>
     </f:entry>
+
+    <j:set var="users" value="${descriptor.users}" />
+    <j:set var="rid" value="${descriptor.randomId}" />
+    <div style="float:left;padding:10px 0px;width:100%" class="select-users"
+         id="select-users-${rid}">
+        <div style="float:left;padding:10px 0px;width:100%">
+            <input type="button" value="select all" onclick="set_all_users_${rid}(true)"/>
+            <input type="button" value="cancel all" onclick="set_all_users_${rid}(false)"/>
+        </div>
+        <input type="hidden" name="_.strUsers" value="${instance.strUsers}" id="h-users-${rid}"/>
+        <j:forEach var="user" items="${users}">
+            <div style="float:left;margin-right:10px">
+                <input type="checkbox" name="u:${user}" class="c-user-${rid}"
+                       id="c-user-${rid}-${user}"
+                       onclick="check_users_checkbox_status_${rid}()"
+                />
+                <span>${user}</span>
+            </div>
+        </j:forEach>
+        <script>
+<![CDATA[
+            var check_users_checkbox_status_${rid} = function() {
+                var es = document.getElementsByClassName("c-user-${rid}");
+                var users = [];
+                for (var i = 0; i < es.length; i++) {
+                    if (es[i].checked === true) {
+                        users.push(es[i].name.split(":")[1]);
+                    }
+                }
+                document.getElementById("h-users-${rid}").value = users.join(",");
+            };
+
+            var user_checkbox_load_event_${rid} = function() {
+                var obj = document.getElementById("h-users-${rid}");
+                if (obj === null) {
+                    return;
+                }
+                var users = obj.value.split(",");
+                for (var i = 0; i < users.length; i++) {
+                    var box = document.getElementById("c-user-${rid}-" + users[i])
+                    if (box !== null) {
+                        box.checked = true;
+                    }
+                }
+            };
+
+            var set_all_users_${rid} = function(v) {
+                var es = document.getElementsByClassName("c-user-${rid}");
+                for (var i = 0; i < es.length; i++) {
+                    es[i].checked = v;
+                }
+                check_users_checkbox_status_${rid}();
+            }
+
+            window.addEventListener("load", user_checkbox_load_event_${rid});
+]]>
+        </script>
+    </div>
 
     <f:advanced>
 

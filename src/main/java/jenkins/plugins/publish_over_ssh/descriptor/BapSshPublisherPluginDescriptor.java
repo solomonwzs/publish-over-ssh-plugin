@@ -49,7 +49,7 @@ import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("PMD.TooManyMethods")
 public class BapSshPublisherPluginDescriptor extends BuildStepDescriptor<Publisher> {
@@ -91,6 +91,16 @@ public class BapSshPublisherPluginDescriptor extends BuildStepDescriptor<Publish
 
     public List<BapSshHostConfiguration> getHostConfigurations() {
         return hostConfigurations.getView();
+    }
+
+    public ArrayList<BapSshHostConfiguration> getValidHostConfigurations() {
+        ArrayList<BapSshHostConfiguration> confList = new ArrayList<>();
+        for (BapSshHostConfiguration c : hostConfigurations.getView()) {
+            if (c.isCurrentUserOK()) {
+                confList.add(c);
+            }
+        }
+        return confList;
     }
 
     public BapSshHostConfiguration getConfiguration(final String name) {
