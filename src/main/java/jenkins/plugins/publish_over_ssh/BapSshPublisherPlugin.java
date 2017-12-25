@@ -25,8 +25,16 @@
 package jenkins.plugins.publish_over_ssh;
 
 import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.Hudson;
+
+import java.io.IOException;
 import java.util.ArrayList;
+
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import jenkins.plugins.publish_over.BPInstanceConfig;
 import jenkins.plugins.publish_over.BPPlugin;
 import jenkins.plugins.publish_over.BPPluginDescriptor;
 import jenkins.plugins.publish_over_ssh.descriptor.BapSshPublisherPluginDescriptor;
@@ -48,6 +56,39 @@ public class BapSshPublisherPlugin extends BPPlugin<BapSshPublisher, BapSshClien
                                  final BapSshParamPublish paramPublish) {
         super(Messages.console_message_prefix(), publishers, continueOnError, failOnError, alwaysPublishFromMaster, masterNodeName,
                 paramPublish);
+    }
+
+    public ArrayList<BapSshPublisher> getValidPublishers() {
+        BPInstanceConfig delegate = super.getDelegate();
+        ArrayList<BapSshPublisher> publishers = delegate.getPublishers();
+        ArrayList<BapSshPublisher> list = new ArrayList<>();
+        for (BapSshPublisher p : publishers) {
+            String name = p.getConfigName();
+            BapSshHostConfiguration conf = this.getConfiguration(name);
+            // System.out.println("+++: " + conf.toString());
+            if (conf.isCurrentUserOK()) {
+                list.add(p);
+            }
+        }
+        return list;
+    }
+
+    public BPInstanceConfig getValidDelegate() {
+        ArrayList<BapSshPublisher> publishers = this.getValidPublishers();
+        // System.out.println(publishers.size());
+        BPInstanceConfig<BapSshPublisher> conf = this.getInstanceConfig();
+        return new BPInstanceConfig(publishers, conf.isContinueOnError(),
+                conf.isFailOnError(), conf.isAlwaysPublishFromMaster(),
+                conf.getMasterNodeName(), conf.getParamPublish());
+    }
+
+    @Override
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+            throws InterruptedException, IOException {
+        BPInstanceConfig delegate = this.getValidDelegate();
+        // System.out.println("---: " + delegate.toString());
+        // this.setDelegate(delegate);
+        super.perform(build, workspace, launcher, listener);
     }
 
     public BapSshParamPublish getParamPublish() {

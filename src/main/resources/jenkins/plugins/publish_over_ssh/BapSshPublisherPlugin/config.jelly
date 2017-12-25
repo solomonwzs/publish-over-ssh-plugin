@@ -31,7 +31,7 @@
     <poj:defaultMessages/>
     
     <j:set var="plugin" value="${instance}"/>
-    <j:set var="instance" value="${instance.delegate}"/>
+    <j:set var="instance" value="${instance.validDelegate}"/>
     
     <st:once>
         <script type="text/javascript" src="${rootURL}/plugin/publish-over-ssh/js/pos.js" />
@@ -45,8 +45,9 @@
     <f:entry title='${inPromotion ? "" : "%publishers.section"}'>
         <j:scope>
             <j:set var="descriptor" value="${descriptor.publisherDescriptor}"/>
-            <f:repeatable items="${instance.publishers}" var="instance" name="publishers" minimum="1" header="${%publisher.dragAndDropLabel}" add="${m.addPublisher()}">
-                <!-- <j:set var="sshHostConf" value="${instance.descriptor.publisherPluginDescriptor.getConfiguration(instance.configName)}"/> -->
+            <f:repeatable items="${instance.publishers}" var="instance" name="publishers"
+                          minimum="1" header="${%publisher.dragAndDropLabel}"
+                          add="${m.addPublisher()}">
                 <table width="100%" padding="0">
                     <st:include page="config.jelly" class="${descriptor.clazz}"/>
                     <f:entry title="">

@@ -122,10 +122,12 @@ public class BapSshHostConfiguration
 
     public boolean isCurrentUserOK() {
         User cUser = User.current();
+        // System.out.println("***: " + cUser.toString());
         if (cUser != null) {
             return this.users.contains(cUser.getId());
         } else {
-            return false;
+            // return false;
+            return true;
         }
     }
 

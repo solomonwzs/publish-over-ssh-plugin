@@ -29,5 +29,5 @@
     <j:set var="instance" value="${instance.preBuild}"/>
     <j:set var="descriptor" value="${descriptor.publisherDescriptor}"/>
     <st:include page="config.jelly" class="${descriptor.clazz}"/>
-<p>xaxax</p>
+
 </j:jelly>
