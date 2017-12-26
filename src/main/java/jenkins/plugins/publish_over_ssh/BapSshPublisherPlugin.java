@@ -27,13 +27,12 @@ package jenkins.plugins.publish_over_ssh;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Hudson;
+import hudson.model.*;
+import hudson.model.Cause.UserIdCause;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import hudson.model.Run;
-import hudson.model.TaskListener;
 import jenkins.plugins.publish_over.BPInstanceConfig;
 import jenkins.plugins.publish_over.BPPlugin;
 import jenkins.plugins.publish_over.BPPluginDescriptor;
@@ -65,7 +64,6 @@ public class BapSshPublisherPlugin extends BPPlugin<BapSshPublisher, BapSshClien
         for (BapSshPublisher p : publishers) {
             String name = p.getConfigName();
             BapSshHostConfiguration conf = this.getConfiguration(name);
-            // System.out.println("+++: " + conf.toString());
             if (conf.isCurrentUserOK()) {
                 list.add(p);
             }
@@ -75,20 +73,49 @@ public class BapSshPublisherPlugin extends BPPlugin<BapSshPublisher, BapSshClien
 
     public BPInstanceConfig getValidDelegate() {
         ArrayList<BapSshPublisher> publishers = this.getValidPublishers();
-        // System.out.println(publishers.size());
         BPInstanceConfig<BapSshPublisher> conf = this.getInstanceConfig();
         return new BPInstanceConfig(publishers, conf.isContinueOnError(),
                 conf.isFailOnError(), conf.isAlwaysPublishFromMaster(),
                 conf.getMasterNodeName(), conf.getParamPublish());
     }
 
+    public ArrayList<BapSshPublisher> getValidPublishersByUserID(String userId) {
+        BPInstanceConfig delegate = super.getDelegate();
+        ArrayList<BapSshPublisher> publishers = delegate.getPublishers();
+        ArrayList<BapSshPublisher> list = new ArrayList<>();
+        for (BapSshPublisher p : publishers) {
+            String name = p.getConfigName();
+            BapSshHostConfiguration conf = this.getConfiguration(name);
+            if (conf.isUserIdOK(userId)) {
+                list.add(p);
+            }
+        }
+        return list;
+    }
+
     @Override
-    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        BPInstanceConfig delegate = this.getValidDelegate();
-        // System.out.println("---: " + delegate.toString());
-        // this.setDelegate(delegate);
-        super.perform(build, workspace, launcher, listener);
+        UserIdCause userIdCause = build.getCause(UserIdCause.class);
+        if (userIdCause == null) {
+            // For Tests
+            return super.perform(build, launcher, listener);
+        }
+
+        ArrayList<BapSshPublisher> publishers = this.getValidPublishersByUserID(
+                userIdCause.getUserId());
+        BPInstanceConfig<BapSshPublisher> conf = this.getInstanceConfig();
+
+        BapSshPublisherPlugin p = new BapSshPublisherPlugin(publishers,
+                conf.isContinueOnError(), conf.isFailOnError(),
+                conf.isAlwaysPublishFromMaster(), conf.getMasterNodeName(),
+                (BapSshParamPublish) conf.getParamPublish());
+        return p.run(build, launcher, listener);
+    }
+
+    private boolean run(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
+            throws InterruptedException, IOException {
+        return super.perform(build, launcher, listener);
     }
 
     public BapSshParamPublish getParamPublish() {

@@ -117,7 +117,17 @@ public class BapSshHostConfiguration
     }
 
     public String getStrUsers() {
-        return String.join(",", this.users);
+        String s = "";
+        int size = this.users.size();
+        for (int i = 0; i < size - 1; i++) {
+            s += this.users.get(i);
+            s += ",";
+        }
+        if (size > 0) {
+            s += this.users.get(size - 1);
+        }
+        System.out.println("xxx: " + s);
+        return s;
     }
 
     public boolean isCurrentUserOK() {
@@ -126,8 +136,17 @@ public class BapSshHostConfiguration
         if (cUser != null) {
             return this.users.contains(cUser.getId());
         } else {
-            // return false;
-            return true;
+            return false;
+            // return true;
+        }
+    }
+
+    public boolean isUserIdOK(String userId) {
+        if (userId != null) {
+            return this.users.contains(userId);
+        } else {
+            return false;
+            // return true;
         }
     }
 
