@@ -76,6 +76,7 @@ public class BapSshHostConfiguration
     private String proxyPassword;
 
     private ArrayList<String> users;
+    private boolean disableUserCtrl;
 
     public BapSshHostConfiguration() {
         // use this constructor instead of the default w/o parameters because there is some
@@ -93,7 +94,8 @@ public class BapSshHostConfiguration
                                    final String remoteRootDir, final int port,
                                    final int timeout, final boolean overrideKey,
                                    final String keyPath, final String key,
-                                   final boolean disableExec, final String strUsers
+                                   final boolean disableExec, final String strUsers,
+                                   final boolean disableUserCtrl
     ) {
         // CSON: ParameterNumberCheck
         super(name, hostname, username, null, remoteRootDir, port);
@@ -102,10 +104,20 @@ public class BapSshHostConfiguration
         this.keyInfo = new BapSshKeyInfo(encryptedPassword, key, keyPath);
         this.disableExec = disableExec;
 
+        this.disableUserCtrl = disableUserCtrl;
         this.users = new ArrayList<>();
         for (String u : strUsers.split(",")) {
             this.users.add(u);
         }
+    }
+
+    public boolean isDisableUserCtrl() {
+        return disableUserCtrl;
+    }
+
+    @DataBoundSetter
+    public void setDisableUserCtrl(boolean b) {
+        this.disableUserCtrl = b;
     }
 
     @DataBoundSetter
@@ -126,11 +138,15 @@ public class BapSshHostConfiguration
         if (size > 0) {
             s += this.users.get(size - 1);
         }
-        System.out.println("xxx: " + s);
+        // System.out.println("xxx: " + s);
         return s;
     }
 
     public boolean isCurrentUserOK() {
+        if (this.disableUserCtrl) {
+            return true;
+        }
+
         User cUser = User.current();
         // System.out.println("***: " + cUser.toString());
         if (cUser != null) {
@@ -142,6 +158,10 @@ public class BapSshHostConfiguration
     }
 
     public boolean isUserIdOK(String userId) {
+        if (this.disableUserCtrl) {
+            return true;
+        }
+
         if (userId != null) {
             return this.users.contains(userId);
         } else {

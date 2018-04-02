@@ -46,19 +46,27 @@
     <div style="float:left;padding:10px 0px;width:100%" class="select-users"
          id="select-users-${rid}">
         <div style="float:left;padding:10px 0px;width:100%">
-            <input type="button" value="select all" onclick="set_all_users_${rid}(true)"/>
-            <input type="button" value="cancel all" onclick="set_all_users_${rid}(false)"/>
+            <input type="checkbox" name="_.disableUserCtrl" id="c-disableUserCtrl-${rid}"
+                   onclick="check_disableUserCtrl_checkbox_status_${rid}()"
+            />
+            <span>Disable User Control</span>
         </div>
-        <input type="hidden" name="_.strUsers" value="${instance.strUsers}" id="h-users-${rid}"/>
-        <j:forEach var="user" items="${users}">
-            <div style="float:left;margin-right:10px">
-                <input type="checkbox" name="u:${user}" class="c-user-${rid}"
-                       id="c-user-${rid}-${user}"
-                       onclick="check_users_checkbox_status_${rid}()"
-                />
-                <span>${user}</span>
+        <div id="p-user-ctrl-${rid}">
+            <div style="float:left;padding:10px 0px;width:100%">
+                <input type="button" value="select all" onclick="set_all_users_${rid}(true)"/>
+                <input type="button" value="cancel all" onclick="set_all_users_${rid}(false)"/>
             </div>
-        </j:forEach>
+            <input type="hidden" name="_.strUsers" value="${instance.strUsers}" id="h-users-${rid}"/>
+            <j:forEach var="user" items="${users}">
+                <div style="float:left;margin-right:10px">
+                    <input type="checkbox" name="u:${user}" class="c-user-${rid}"
+                           id="c-user-${rid}-${user}"
+                           onclick="check_users_checkbox_status_${rid}()"
+                    />
+                    <span>${user}</span>
+                </div>
+            </j:forEach>
+        </div>
         <script>
 <![CDATA[
             var check_users_checkbox_status_${rid} = function() {
@@ -94,7 +102,32 @@
                 check_users_checkbox_status_${rid}();
             }
 
+            var disableUserCtrl_checkbox_load_event_${rid} = function() {
+                var box = document.getElementById("c-disableUserCtrl-${rid}");
+                if (box !== null) {
+                    box.checked = ${instance.disableUserCtrl};
+                }
+
+                var p = document.getElementById("p-user-ctrl-${rid}");
+                if (${instance.disableUserCtrl}) {
+                    p.style.display = "none";
+                } else {
+                    p.style.display = "block";
+                }
+            }
+
+            var check_disableUserCtrl_checkbox_status_${rid} = function() {
+                var box = document.getElementById("c-disableUserCtrl-${rid}")
+                var p = document.getElementById("p-user-ctrl-${rid}")
+                if (box.checked === true) {
+                    p.style.display = "none";
+                } else {
+                    p.style.display = "block";
+                }
+            }
+
             window.addEventListener("load", user_checkbox_load_event_${rid});
+            window.addEventListener("load", disableUserCtrl_checkbox_load_event_${rid});
 ]]>
         </script>
     </div>
